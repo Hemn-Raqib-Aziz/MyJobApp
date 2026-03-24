@@ -1,0 +1,32 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+{
+    Schema::create('applications', function (Blueprint $table) {
+        $table->id();
+        $table->foreignId('job_seeker_id')->constrained('job_seekers')->onDelete('cascade');
+        $table->foreignId('job_post_id')->constrained('job_posts')->onDelete('cascade');
+        $table->text('cover_letter');
+        $table->string('cv_path'); // stores the PDF file path
+        $table->enum('status', ['pending', 'reviewed', 'accepted', 'rejected'])->default('pending');
+        $table->timestamps();
+
+        // Prevent applying to same job twice
+        $table->unique(['job_seeker_id', 'job_post_id']);
+    });
+}
+
+public function down(): void
+{
+    Schema::dropIfExists('applications');
+}
+};
