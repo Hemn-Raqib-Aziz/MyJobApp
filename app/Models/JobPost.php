@@ -32,4 +32,9 @@ public function applications(): HasMany
     return $this->hasMany(Application::class);
 }
 
+public function savedBy()
+{
+    return $this->belongsToMany(User::class, 'saved_jobs', 'job_post_id', 'user_id');
+}
+
 }

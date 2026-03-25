@@ -50,4 +50,9 @@ class User extends Authenticatable implements MustVerifyEmail
                 'password' => 'hashed',
             ];
         }
+
+        public function savedJobs()
+{
+    return $this->hasMany(SavedJob::class);
+}
 }

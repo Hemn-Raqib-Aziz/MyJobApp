@@ -13,22 +13,6 @@ created_at	timestamp	YES
 updated_at	timestamp	YES			
 
 
-
-
-DESCRIBE app.jobs;
-id	bigint unsigned	NO	PRI		auto_increment
-queue	varchar(255)	NO	MUL		
-payload	longtext	NO			
-attempts	tinyint unsigned	NO			
-reserved_at	int unsigned	YES			
-available_at	int unsigned	NO			
-created_at	int unsigned	NO			
-
-
-
-
-
-
 DESCRIBE app.job_posters;
 id	bigint unsigned	NO	PRI		auto_increment
 user_id	bigint unsigned	NO	MUL		
@@ -38,7 +22,6 @@ website	varchar(255)	YES
 about	text	YES			
 created_at	timestamp	YES			
 updated_at	timestamp	YES			
-
 
 
 
@@ -52,6 +35,30 @@ bio	text	YES
 email_notifications	tinyint(1)	NO		1	
 created_at	timestamp	YES			
 updated_at	timestamp	YES			
+
+
+
+
+
+
+
+DESCRIBE app.jobs_posts;
+id	bigint unsigned	NO	PRI		auto_increment
+title	varchar(255)	NO			
+job_description	text	NO			
+job_requirements	text	NO			
+location	varchar(255)	NO			
+category	varchar(255)	NO			
+deadline	date	NO			
+job_type	varchar(255)	NO			
+created_at	timestamp	YES			
+updated_at	timestamp	YES			
+job_poster_id	bigint unsigned	NO	MUL		
+
+
+
+
+
 
 
 

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\NewJobPosted;
+use App\Models\SavedJob;
 
 class JobPostController extends Controller
 {
@@ -16,7 +17,6 @@ class JobPostController extends Controller
 public function index(Request $request)
 {
     $query = JobPost::with('poster')->latest();
-
     if ($request->filled('search')) {
         $query->where(function($q) use ($request) {
             $q->where('title', 'like', '%' . $request->search . '%')
@@ -39,7 +39,16 @@ public function index(Request $request)
 
     $jobs = $query->get();
 
-    return view('jobs.index', compact('jobs'));
+    // Load saved job IDs for the logged in job seeker
+    $savedJobIds = [];
+    if (auth()->check()) {
+        /** @var \App\Models\User $authUser */
+        $authUser = auth()->user();
+        $savedJobIds = $authUser->savedJobs()->pluck('job_post_id')->toArray();
+    }
+    
+
+    return view('jobs.index', compact('jobs', 'savedJobIds'));
 }
 
     // Show create form
@@ -113,7 +122,6 @@ public function myJobs()
 
     /** @var \App\Models\User $user */
     $user = Auth::user();
-
     $jobs = JobPost::where('job_poster_id', $user->jobPoster->id)->latest()->get();
     return view('jobs.my-jobs', compact('jobs'));
 }
@@ -184,9 +192,38 @@ public function destroy(JobPost $jobPost)
 
 
 
+public function saveJob($jobId)
+{
+    $userId = Auth::id();
+
+    SavedJob::firstOrCreate([
+        'user_id' => $userId,
+        'job_post_id' => $jobId
+    ]);
+
+    return back()->with('message', 'Job saved successfully!');
+}
+
+public function unsaveJob($jobId)
+{
+    $userId = Auth::id();
+
+    SavedJob::where('user_id', $userId)
+        ->where('job_post_id', $jobId)
+        ->delete();
+
+    return back()->with('message', 'Job removed from saved jobs.');
+}
 
 
-
+public function savedJobs()
+{
+    /** @var \App\Models\User $user */
+    $user = auth()->user();
+    $savedJobIds = $user->savedJobs()->pluck('job_post_id')->toArray();
+    $jobs = JobPost::whereIn('id', $savedJobIds)->get();
+    return view('jobs.index', compact('jobs', 'savedJobIds'));
+}
 
 
 }

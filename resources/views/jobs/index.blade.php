@@ -14,23 +14,17 @@
             border-radius: var(--radius);
             border: 1px solid var(--gray-200);
         }
-
         .filter-bar .form-control {
             flex: 1;
             min-width: 160px;
             background: var(--white);
         }
-
-        .filter-bar .btn {
-            white-space: nowrap;
-        }
-
+        .filter-bar .btn { white-space: nowrap; }
         .results-count {
             font-size: 13px;
             color: var(--gray-400);
             margin-bottom: 20px;
         }
-
         @media (max-width: 600px) {
             .filter-bar { flex-direction: column; }
             .filter-bar .form-control { min-width: 100%; }
@@ -86,6 +80,11 @@
                 @if(request()->hasAny(['search', 'location', 'job_type', 'category']))
                     <a href="{{ route('jobs.index') }}" class="btn btn-secondary">Clear</a>
                 @endif
+                @auth
+                    @if(auth()->user()->user_type === 'job_seeker')
+                        <a href="{{ route('jobs.saved') }}" class="btn btn-secondary">Saved Jobs</a>
+                    @endif
+                @endauth
             </div>
         </form>
 
@@ -111,8 +110,25 @@
                     </div>
                     <span style="font-size:13px; color:var(--gray-400); white-space:nowrap;">⏰ {{ $job->deadline }}</span>
                 </div>
+
                 <div class="job-card-actions">
                     <a href="{{ route('jobs.show', $job->id) }}" class="btn btn-primary btn-sm">View Details</a>
+
+                    @auth
+                        @if(auth()->user()->user_type === 'job_seeker')
+                            @if(in_array($job->id, $savedJobIds))
+                                <form method="POST" action="{{ route('jobs.unsave', $job->id) }}" style="display:inline;">
+                                    @csrf
+                                    <button type="submit" class="btn btn-secondary btn-sm">Unsave</button>
+                                </form>
+                            @else
+                                <form method="POST" action="{{ route('jobs.save', $job->id) }}" style="display:inline;">
+                                    @csrf
+                                    <button type="submit" class="btn btn-secondary btn-sm">Save</button>
+                                </form>
+                            @endif
+                        @endif
+                    @endauth
                 </div>
             </div>
         @empty

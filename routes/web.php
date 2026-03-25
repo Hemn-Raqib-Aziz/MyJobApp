@@ -85,16 +85,9 @@ Route::post('/email/resend', function (Request $request) {
 
 
 
-Route::get('/jobs', [JobPostController::class, 'index'])->name('jobs.index');
-Route::get('/jobs/create', [JobPostController::class, 'create'])->middleware(['auth', 'verified'])->name('jobs.create');
-Route::post('/jobs', [JobPostController::class, 'store'])->middleware(['auth', 'verified'])->name('jobs.store');
-Route::get('/jobs/{jobPost}', [JobPostController::class, 'show'])->name('jobs.show');
+
 
 // My posted jobs (job poster only)
-Route::get('/my-jobs', [JobPostController::class, 'myJobs'])->middleware(['auth', 'verified'])->name('jobs.mine');
-Route::get('/jobs/{jobPost}/edit', [JobPostController::class, 'edit'])->middleware(['auth', 'verified'])->name('jobs.edit');
-Route::put('/jobs/{jobPost}', [JobPostController::class, 'update'])->middleware(['auth', 'verified'])->name('jobs.update');
-Route::delete('/jobs/{jobPost}', [JobPostController::class, 'destroy'])->middleware(['auth', 'verified'])->name('jobs.destroy');
 
 
 
@@ -117,15 +110,29 @@ Route::post('/seeker/subscribe', [ProfileController::class, 'toggleSubscription'
 
 
 
+
+
+Route::get('/jobs', [JobPostController::class, 'index'])->name('jobs.index');
+Route::get('/jobs/create', [JobPostController::class, 'create'])->middleware(['auth', 'verified'])->name('jobs.create');
+Route::get('/jobs/saved', [JobPostController::class, 'savedJobs'])->name('jobs.saved');
+Route::post('/jobs', [JobPostController::class, 'store'])->middleware(['auth', 'verified'])->name('jobs.store');
+Route::post('/jobs/{id}/save', [JobPostController::class, 'saveJob'])->name('jobs.save');
+Route::post('/jobs/{id}/unsave', [JobPostController::class, 'unsaveJob'])->name('jobs.unsave');
+Route::get('/my-jobs', [JobPostController::class, 'myJobs'])->middleware(['auth', 'verified'])->name('jobs.mine');
+Route::get('/jobs/{jobPost}', [JobPostController::class, 'show'])->name('jobs.show');
 // Job seeker - apply for a job
 Route::get('/jobs/{jobPost}/apply', [ApplicationController::class, 'create'])->middleware(['auth', 'verified'])->name('applications.create');
 Route::post('/jobs/{jobPost}/apply', [ApplicationController::class, 'store'])->middleware(['auth', 'verified'])->name('applications.store');
+// Job poster - see applications for a job
+Route::get('/jobs/{jobPost}/applications', [ApplicationController::class, 'jobApplications'])->middleware(['auth', 'verified'])->name('applications.job');
+Route::get('/jobs/{jobPost}/edit', [JobPostController::class, 'edit'])->middleware(['auth', 'verified'])->name('jobs.edit');
+Route::put('/jobs/{jobPost}', [JobPostController::class, 'update'])->middleware(['auth', 'verified'])->name('jobs.update');
+Route::delete('/jobs/{jobPost}', [JobPostController::class, 'destroy'])->middleware(['auth', 'verified'])->name('jobs.destroy');
+
 
 // Job seeker - see their applications
 Route::get('/my-applications', [ApplicationController::class, 'myApplications'])->middleware(['auth', 'verified'])->name('applications.mine');
 
-// Job poster - see applications for a job
-Route::get('/jobs/{jobPost}/applications', [ApplicationController::class, 'jobApplications'])->middleware(['auth', 'verified'])->name('applications.job');
 
 // Job poster - see single application
 Route::get('/applications/{application}', [ApplicationController::class, 'show'])->middleware(['auth', 'verified'])->name('applications.show');
@@ -136,3 +143,8 @@ Route::put('/applications/{application}/status', [ApplicationController::class, 
 
 // Public job poster profile
 Route::get('/poster/{jobPoster}', [ProfileController::class, 'showPosterProfile'])->name('poster.profile');
+
+
+
+
+
