@@ -11,13 +11,7 @@ use App\Mail\NewJobPosted;
 
 class JobPostController extends Controller
 {
-    // Show all jobs
-    // public function index()
-    // {
-    //     $jobs = JobPost::with('poster')->latest()->get();
-    //     return view('jobs.index', compact('jobs'));
-    // }
-    // Replace your index() method in JobPostController.php with this:
+    
 
 public function index(Request $request)
 {

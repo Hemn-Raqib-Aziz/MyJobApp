@@ -1,39 +1,3 @@
-{{-- <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
-        .card { background: white; padding: 30px; border-radius: 8px; max-width: 600px; margin: auto; }
-        .btn { background: #0d6efd; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 20px; }
-        .badge { background: #e9ecef; padding: 4px 10px; border-radius: 20px; font-size: 13px; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h2>📨 New Application Received!</h2>
-        <p>Someone applied for your job posting:</p>
-
-        <h3>{{ $application->jobPost->title }}</h3>
-
-        <p>
-            <span class="badge">👤 {{ $application->jobSeeker->user->name }}</span>
-            <span class="badge">📍 {{ $application->jobSeeker->location ?? 'Not set' }}</span>
-        </p>
-
-        <a href="{{ url('/applications/' . $application->id) }}" class="btn">
-            View Application
-        </a>
-
-        <p style="margin-top: 30px; color: #999; font-size: 12px;">
-            You received this email because someone applied to your job on MyJobApp.
-        </p>
-    </div>
-</body>
-</html> --}}
-
-
-{{-- new-application.blade.php --}}
 <!DOCTYPE html>
 <html>
 <head>

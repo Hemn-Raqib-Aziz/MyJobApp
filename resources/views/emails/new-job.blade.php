@@ -1,39 +1,3 @@
-{{-- <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
-        .card { background: white; padding: 30px; border-radius: 8px; max-width: 600px; margin: auto; }
-        .btn { background: #0d6efd; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 20px; }
-        .badge { background: #e9ecef; padding: 4px 10px; border-radius: 20px; font-size: 13px; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h2>🆕 New Job Available!</h2>
-        <h3>{{ $job->title }}</h3>
-
-        <p>
-            <span class="badge">📍 {{ $job->location }}</span>
-            <span class="badge">💼 {{ ucfirst(str_replace('_', ' ', $job->job_type)) }}</span>
-            <span class="badge">📂 {{ $job->category }}</span>
-            <span class="badge">⏰ Deadline: {{ $job->deadline }}</span>
-        </p>
-
-        <p>{{ Str::limit($job->job_description, 200) }}</p>
-
-        <a href="{{ url('/jobs/' . $job->id) }}" class="btn">View Job Details</a>
-
-        <p style="margin-top: 30px; color: #999; font-size: 12px;">
-            You received this email because you are registered on MyJobApp.
-        </p>
-    </div>
-</body>
-</html> --}}
-
-
-{{-- new-job.blade.php --}}
 <!DOCTYPE html>
 <html>
 <head>
