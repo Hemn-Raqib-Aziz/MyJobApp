@@ -39,7 +39,7 @@ class ProfileController extends Controller
 
             JobSeeker::create([
                 'user_id'   => $user->id,
-                'age'       => $request->age,
+                'age'       => $request->age * 100,
                 'sex'       => $request->sex,
                 'location'  => $request->location,
                 'bio'       => $request->bio,

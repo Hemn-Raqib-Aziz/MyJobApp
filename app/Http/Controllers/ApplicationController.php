@@ -47,7 +47,7 @@ class ApplicationController extends Controller
 
         $request->validate([
             'cover_letter' => ['required', 'string', 'min:50'],
-            'cv'           => ['required', 'file', 'mimes:pdf', 'max:2048'],
+            'cv'           => ['required', 'file', 'mimes:pdf', 'mimetypes:application/pdf', 'max:2048'],
         ]);
 
         // Store CV file
