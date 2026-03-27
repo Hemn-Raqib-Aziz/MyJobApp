@@ -29,7 +29,7 @@
             <div class="card-body">
                 <div class="info-grid" style="margin-bottom:16px;">
                     <div class="info-item">
-                        <label>Name</label>
+                        <label>User Name</label>
                         <span>{{ $application->jobSeeker->user->name }}</span>
                     </div>
                     <div class="info-item">

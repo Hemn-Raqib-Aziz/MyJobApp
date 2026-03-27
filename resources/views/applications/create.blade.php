@@ -24,7 +24,7 @@
             <p style="font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:12px; color:var(--info);">Profile shared with employer</p>
             <div class="info-grid">
                 <div class="info-item">
-                    <label>Name</label>
+                    <label>User Name</label>
                     <span>{{ $user->name }}</span>
                 </div>
                 <div class="info-item">

@@ -18,7 +18,7 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $formFields = $request->validate([
-            'name'     => ['required', 'min:3', 'max:30'],
+            'name'     => ['required', 'string', 'min:3', 'max:30'],
             'email'    => ['required', 'email:rcf,dns', Rule::unique('users', 'email')],
             'password' => 'required|confirmed|min:6',
             'role'     => ['required', 'in:job_seeker,job_poster'],

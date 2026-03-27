@@ -31,15 +31,17 @@ class ProfileController extends Controller
 
         if ($request->role === 'job_seeker') {
             $request->validate([
-                'age'       => ['nullable', 'integer'],
-                'sex'       => ['nullable', 'in:male,female'],
-                'location'  => ['nullable', 'string'],
-                'bio'       => ['nullable', 'string'],
+            'profile_title' => 'required|string|min:3|max:60',
+            'age'           => 'required|integer|min:16|max:99',
+            'sex'           => 'required|in:male,female',
+            'location'      => 'required|string|max:100',
+            'bio'           => 'nullable|string|max:500',
             ]);
 
             JobSeeker::create([
                 'user_id'   => $user->id,
-                'age'       => $request->age * 100,
+                'profile_title' => $request->profile_title,
+                'age'       => $request->age,
                 'sex'       => $request->sex,
                 'location'  => $request->location,
                 'bio'       => $request->bio,
@@ -47,10 +49,10 @@ class ProfileController extends Controller
 
         } else {
             $request->validate([
-                'industry'        => ['nullable', 'string'],
-                'location'        => ['nullable', 'string'],
-                'website'         => ['nullable', 'string'],
-                'about'           => ['nullable', 'string'],
+            'industry'      => 'required|string|max:100',
+            'location'      => 'required|string|max:100',
+            'website'       => 'required|url|max:255',
+            'about'         => 'required|string|max:500',
             ]);
 
             JobPoster::create([
@@ -99,15 +101,17 @@ public function updateAccount(Request $request)
     }
 
     $request->validate([
-        'name'            => ['required', 'string', 'min:3', 'max:30'],
-        'industry'        => ['nullable', 'string', 'max:255'],
-        'location'        => ['nullable', 'string', 'max:255'],
-        'website'         => ['nullable', 'string', 'max:255'],
-        'about'           => ['nullable', 'string'],
+        'name'          => 'required|string|min:3|max:30',
+        'industry'      => 'required|string|max:100',
+        'location'      => 'required|string|max:100',
+        'website'       => 'required|url|max:255',
+        'about'         => 'required|string|max:500',
     ]);
 
     // Update user name
-    $user->update(['name' => $request->name]);
+    $user->update([
+        'name' => $request->name
+        ]);
 
     // Update job poster profile
     $user->jobPoster->update([
@@ -176,16 +180,20 @@ public function updateSeekerAccount(Request $request)
     }
 
     $request->validate([
-        'name'     => ['required', 'string', 'min:3', 'max:30'],
-        'age'      => ['nullable', 'integer'],
-        'sex'      => ['nullable', 'in:male,female'],
-        'location' => ['nullable', 'string'],
-        'bio'      => ['nullable', 'string'],
+        'name'          => 'required|string|min:3|max:30',
+        'profile_title' => 'required|string|min:3|max:60',
+        'age'           => 'required|integer|min:16|max:99',
+        'sex'           => 'required|in:male,female',
+        'location'      => 'required|string|max:100',
+        'bio'           => 'nullable|string|max:500',
     ]);
 
-    $user->update(['name' => $request->name]);
+    $user->update([
+        'name' => $request->name
+        ]);
 
     $user->jobSeeker->update([
+        'profile_title' => $request->profile_title,
         'age'      => $request->age,
         'sex'      => $request->sex,
         'location' => $request->location,

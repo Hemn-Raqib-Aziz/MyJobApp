@@ -5,6 +5,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<title> {{ config('app.name', 'M') }} </title>
 <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 

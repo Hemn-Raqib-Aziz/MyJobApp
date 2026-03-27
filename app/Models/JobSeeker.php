@@ -15,7 +15,8 @@ class JobSeeker extends Model
         'location',
         'skills',
         'bio',
-        'email_notifications'
+        'email_notifications',
+        'profile_title'
     ];
 
     // Link back to the user
