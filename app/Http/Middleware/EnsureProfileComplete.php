@@ -10,13 +10,9 @@ use Symfony\Component\HttpFoundation\Response;
 class EnsureProfileComplete
 {
     /**
-     * Redirect to profile setup if the user has not yet created
-     * their JobSeeker or JobPoster profile.
-     *
-     * Register alias 'profile.complete' in bootstrap/app.php (L11)
-     * or Kernel.php $middlewareAliases (L10).
-     *
-     * Typical stack: ['auth', 'verified', 'profile.complete']
+     * Alias: profile.complete
+     * Redirect to /setup-profile if the user has no JobSeeker or JobPoster record yet.
+     * Stack order: auth -> verified -> profile.complete -> job.seeker / job.poster
      */
     public function handle(Request $request, Closure $next): Response
     {

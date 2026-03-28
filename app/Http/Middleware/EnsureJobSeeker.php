@@ -9,9 +9,8 @@ use Symfony\Component\HttpFoundation\Response;
 class EnsureJobSeeker
 {
     /**
-     * Only allow job seekers through.
-     * Register alias 'job.seeker' in bootstrap/app.php (L11)
-     * or Kernel.php $middlewareAliases (L10).
+     * Alias: job.seeker
+     * Allow only users whose user_type is 'job_seeker'.
      */
     public function handle(Request $request, Closure $next): Response
     {

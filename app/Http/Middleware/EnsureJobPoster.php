@@ -9,9 +9,8 @@ use Symfony\Component\HttpFoundation\Response;
 class EnsureJobPoster
 {
     /**
-     * Only allow job posters through.
-     * Register alias 'job.poster' in bootstrap/app.php (L11)
-     * or Kernel.php $middlewareAliases (L10).
+     * Alias: job.poster
+     * Allow only users whose user_type is 'job_poster'.
      */
     public function handle(Request $request, Closure $next): Response
     {
