@@ -2,71 +2,56 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\NewJobPosted;
 use App\Models\JobPost;
+use App\Models\SavedJob;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\NewJobPosted;
-use App\Models\SavedJob;
 
 class JobPostController extends Controller
 {
-    
+    // Public listing with filters
+    public function index(Request $request)
+    {
+        $query = JobPost::with('poster')->latest();
 
-public function index(Request $request)
-{
-    $query = JobPost::with('poster')->latest();
-    if ($request->filled('search')) {
-        $query->where(function($q) use ($request) {
-            $q->where('title', 'like', '%' . $request->search . '%')
-              ->orWhere('job_description', 'like', '%' . $request->search . '%')
-              ->orWhere('category', 'like', '%' . $request->search . '%');
-        });
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('title', 'like', '%' . $request->search . '%')
+                  ->orWhere('job_description', 'like', '%' . $request->search . '%')
+                  ->orWhere('category', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        if ($request->filled('location')) {
+            $query->where('location', 'like', '%' . $request->location . '%');
+        }
+
+        if ($request->filled('job_type')) {
+            $query->where('job_type', $request->job_type);
+        }
+
+        if ($request->filled('category')) {
+            $query->where('category', 'like', '%' . $request->category . '%');
+        }
+
+        $jobs        = $query->get();
+        $savedJobIds = $this->getSavedJobIds();
+
+        return view('jobs.index', compact('jobs', 'savedJobIds'));
     }
 
-    if ($request->filled('location')) {
-        $query->where('location', 'like', '%' . $request->location . '%');
-    }
-
-    if ($request->filled('job_type')) {
-        $query->where('job_type', $request->job_type);
-    }
-
-    if ($request->filled('category')) {
-        $query->where('category', 'like', '%' . $request->category . '%');
-    }
-
-    $jobs = $query->get();
-
-    // Load saved job IDs for the logged in job seeker
-    $savedJobIds = [];
-    if (auth()->check()) {
-        /** @var \App\Models\User $authUser */
-        $authUser = auth()->user();
-        $savedJobIds = $authUser->savedJobs()->pluck('job_post_id')->toArray();
-    }
-    
-
-    return view('jobs.index', compact('jobs', 'savedJobIds'));
-}
-
-    // Show create form
+    // Show create form — job.poster middleware handles role check
     public function create()
     {
-        if (Auth::user()->user_type !== 'job_poster') {
-            abort(403, 'Only employers can post jobs.');
-        }
         return view('jobs.create');
     }
 
-    // Save new job
+    // Store new job — job.poster middleware handles role check
     public function store(Request $request)
     {
-        if (Auth::user()->user_type !== 'job_poster') {
-            abort(403, 'Only employers can post jobs.');
-        }
-
         $request->validate([
             'title'            => ['required', 'string', 'max:255'],
             'job_description'  => ['required', 'string'],
@@ -91,139 +76,129 @@ public function index(Request $request)
             'job_poster_id'    => $user->jobPoster->id,
         ]);
 
-        // Send email ONLY to verified subscribed job seekers
-$jobSeekers = User::where('user_type', 'job_seeker')
-    ->whereNotNull('email_verified_at')
-    ->whereHas('jobSeeker', function ($query) {
-        $query->where('email_notifications', true);
-    })
-    ->get();
+        // Notify verified + subscribed job seekers only
+        User::where('user_type', 'job_seeker')
+            ->whereNotNull('email_verified_at')
+            ->whereHas('jobSeeker', fn ($q) => $q->where('email_notifications', true))
+            ->each(fn ($recipient) => Mail::to($recipient->email)->queue(new NewJobPosted($job)));
 
-foreach ($jobSeekers as $recipient) {
-    Mail::to($recipient->email)->queue(new NewJobPosted($job));
-}
-
-        return redirect()->route('jobs.index')->with('message', 'Job posted successfully! All users have been notified.');
+        return redirect()->route('jobs.index')
+            ->with('message', 'Job posted successfully! Subscribed users have been notified.');
     }
 
-    // Show single job
+    // Public single job view
     public function show(JobPost $jobPost)
     {
         return view('jobs.show', compact('jobPost'));
     }
 
+    // Poster's own jobs — job.poster middleware handles role check
+    public function myJobs()
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $jobs = JobPost::where('job_poster_id', $user->jobPoster->id)->latest()->get();
 
-    // Show only the job poster's own jobs
-public function myJobs()
-{
-    if (Auth::user()->user_type !== 'job_poster') {
-        abort(403);
+        return view('jobs.my-jobs', compact('jobs'));
     }
 
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
-    $jobs = JobPost::where('job_poster_id', $user->jobPoster->id)->latest()->get();
-    return view('jobs.my-jobs', compact('jobs'));
-}
+    // Edit form — ownership check keeps the poster honest
+    public function edit(JobPost $jobPost)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-// Show edit form
-public function edit(JobPost $jobPost)
-{
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
+        if ($jobPost->job_poster_id !== $user->jobPoster->id) {
+            abort(403, 'Unauthorized action.');
+        }
 
-    // Only the owner can edit
-    if ($jobPost->job_poster_id !== $user->jobPoster->id) {
-        abort(403, 'Unauthorized action.');
+        return view('jobs.edit', compact('jobPost'));
     }
 
-    return view('jobs.edit', compact('jobPost'));
-}
+    // Update
+    public function update(Request $request, JobPost $jobPost)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-// Update job
-public function update(Request $request, JobPost $jobPost)
-{
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
+        if ($jobPost->job_poster_id !== $user->jobPoster->id) {
+            abort(403, 'Unauthorized action.');
+        }
 
-    if ($jobPost->job_poster_id !== $user->jobPoster->id) {
-        abort(403, 'Unauthorized action.');
+        $request->validate([
+            'title'            => ['required', 'string', 'max:255'],
+            'job_description'  => ['required', 'string'],
+            'job_requirements' => ['required', 'string'],
+            'location'         => ['required', 'string'],
+            'category'         => ['required', 'string'],
+            'deadline'         => ['required', 'date'],
+            'job_type'         => ['required', 'in:full_time,part_time,remote,freelance'],
+        ]);
+
+        $jobPost->update($request->only([
+            'title', 'job_description', 'job_requirements',
+            'location', 'category', 'deadline', 'job_type',
+        ]));
+
+        return redirect()->route('jobs.mine')->with('message', 'Job updated successfully!');
     }
 
-    $request->validate([
-        'title'            => ['required', 'string', 'max:255'],
-        'job_description'  => ['required', 'string'],
-        'job_requirements' => ['required', 'string'],
-        'location'         => ['required', 'string'],
-        'category'         => ['required', 'string'],
-        'deadline'         => ['required', 'date'],
-        'job_type'         => ['required', 'in:full_time,part_time,remote,freelance'],
-    ]);
+    // Delete
+    public function destroy(JobPost $jobPost)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-    $jobPost->update([
-        'title'            => $request->title,
-        'job_description'  => $request->job_description,
-        'job_requirements' => $request->job_requirements,
-        'location'         => $request->location,
-        'category'         => $request->category,
-        'deadline'         => $request->deadline,
-        'job_type'         => $request->job_type,
-    ]);
+        if ($jobPost->job_poster_id !== $user->jobPoster->id) {
+            abort(403, 'Unauthorized action.');
+        }
 
-    return redirect()->route('jobs.mine')->with('message', 'Job updated successfully!');
-}
+        $jobPost->delete();
 
-// Delete job
-public function destroy(JobPost $jobPost)
-{
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
-
-    if ($jobPost->job_poster_id !== $user->jobPoster->id) {
-        abort(403, 'Unauthorized action.');
+        return redirect()->route('jobs.mine')->with('message', 'Job deleted successfully!');
     }
 
-    $jobPost->delete();
+    // Save a job — available to both seekers and posters
+    public function saveJob($jobId)
+    {
+        SavedJob::firstOrCreate([
+            'user_id'     => Auth::id(),
+            'job_post_id' => $jobId,
+        ]);
 
-    return redirect()->route('jobs.mine')->with('message', 'Job deleted successfully!');
-}
+        return back()->with('message', 'Job saved successfully!');
+    }
 
+    // Unsave a job — available to both seekers and posters
+    public function unsaveJob($jobId)
+    {
+        SavedJob::where('user_id', Auth::id())
+            ->where('job_post_id', $jobId)
+            ->delete();
 
+        return back()->with('message', 'Job removed from saved jobs.');
+    }
 
+    // Saved jobs — dedicated page, available to both seekers and posters
+    public function savedJobs()
+    {
+        /** @var \App\Models\User $user */
+        $user        = Auth::user();
+        $savedJobIds = $user->savedJobs()->pluck('job_post_id')->toArray();
+        $jobs        = JobPost::with('poster')->whereIn('id', $savedJobIds)->latest()->get();
 
+        return view('jobs.saved', compact('jobs', 'savedJobIds'));
+    }
 
-public function saveJob($jobId)
-{
-    $userId = Auth::id();
+    // ── Private helper ────────────────────────────────────────────────────
+    private function getSavedJobIds(): array
+    {
+        if (!auth()->check()) {
+            return [];
+        }
 
-    SavedJob::firstOrCreate([
-        'user_id' => $userId,
-        'job_post_id' => $jobId
-    ]);
-
-    return back()->with('message', 'Job saved successfully!');
-}
-
-public function unsaveJob($jobId)
-{
-    $userId = Auth::id();
-
-    SavedJob::where('user_id', $userId)
-        ->where('job_post_id', $jobId)
-        ->delete();
-
-    return back()->with('message', 'Job removed from saved jobs.');
-}
-
-
-public function savedJobs()
-{
-    /** @var \App\Models\User $user */
-    $user = auth()->user();
-    $savedJobIds = $user->savedJobs()->pluck('job_post_id')->toArray();
-    $jobs = JobPost::whereIn('id', $savedJobIds)->get();
-    return view('jobs.index', compact('jobs', 'savedJobIds'));
-}
-
-
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        return $user->savedJobs()->pluck('job_post_id')->toArray();
+    }
 }

@@ -79,26 +79,15 @@ class ProfileController extends Controller
     // Show account page
 public function showAccount()
 {
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
-
-    if ($user->user_type !== 'job_poster') {
-        abort(403);
-    }
-
-    $jobPoster = $user->jobPoster;
-    return view('account.show', compact('jobPoster'));
+     $jobPoster = Auth::user()->jobPoster;
+        return view('account.show', compact('jobPoster'));
 }
 
 // Update account
 public function updateAccount(Request $request)
 {
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
-
-    if ($user->user_type !== 'job_poster') {
-        abort(403);
-    }
+     /** @var \App\Models\User $user */
+        $user = Auth::user();
 
     $request->validate([
         'name'          => 'required|string|min:3|max:30',
@@ -114,12 +103,7 @@ public function updateAccount(Request $request)
         ]);
 
     // Update job poster profile
-    $user->jobPoster->update([
-        'industry'        => $request->industry,
-        'location'        => $request->location,
-        'website'         => $request->website,
-        'about'           => $request->about,
-    ]);
+    $user->jobPoster->update($request->only(['industry', 'location', 'website', 'about']));
 
     return redirect()->route('account.show')->with('message', 'Account updated successfully!');
 }
@@ -127,12 +111,8 @@ public function updateAccount(Request $request)
 // Delete account
 public function deleteAccount(Request $request)
 {
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
-
-    if ($user->user_type !== 'job_poster') {
-        abort(403);
-    }
+      /** @var \App\Models\User $user */
+        $user = Auth::user();
 
     // Logout first
     Auth::logout();
@@ -158,26 +138,16 @@ public function deleteAccount(Request $request)
 // Show job seeker account page
 public function showSeekerAccount()
 {
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
+     $jobSeeker = Auth::user()->jobSeeker;
+        return view('account.seeker', compact('jobSeeker'));
 
-    if ($user->user_type !== 'job_seeker') {
-        abort(403);
-    }
-
-    $jobSeeker = $user->jobSeeker;
-    return view('account.seeker', compact('jobSeeker'));
 }
 
 // Update job seeker account
 public function updateSeekerAccount(Request $request)
 {
     /** @var \App\Models\User $user */
-    $user = Auth::user();
-
-    if ($user->user_type !== 'job_seeker') {
-        abort(403);
-    }
+        $user = Auth::user();
 
     $request->validate([
         'name'          => 'required|string|min:3|max:30',
@@ -192,13 +162,8 @@ public function updateSeekerAccount(Request $request)
         'name' => $request->name
         ]);
 
-    $user->jobSeeker->update([
-        'profile_title' => $request->profile_title,
-        'age'      => $request->age,
-        'sex'      => $request->sex,
-        'location' => $request->location,
-        'bio'      => $request->bio,
-    ]);
+    $user->update(['name' => $request->name]);
+        $user->jobSeeker->update($request->only(['profile_title', 'age', 'sex', 'location', 'bio']));
 
     return redirect()->route('seeker.account.show')->with('message', 'Account updated successfully!');
 }
@@ -207,11 +172,7 @@ public function updateSeekerAccount(Request $request)
 public function deleteSeekerAccount(Request $request)
 {
     /** @var \App\Models\User $user */
-    $user = Auth::user();
-
-    if ($user->user_type !== 'job_seeker') {
-        abort(403);
-    }
+        $user = Auth::user();
 
     Auth::logout();
     $request->session()->invalidate();
@@ -226,11 +187,8 @@ public function deleteSeekerAccount(Request $request)
 public function toggleSubscription(Request $request)
 {
     /** @var \App\Models\User $user */
-    $user = Auth::user();
-
-    if ($user->user_type !== 'job_seeker') {
-        abort(403);
-    }
+        $user    = Auth::user();
+        
 
     $current = $user->jobSeeker->email_notifications;
     $user->jobSeeker->update(['email_notifications' => !$current]);
