@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\NewJobPosted;
+use App\Models\Application;
 use App\Models\JobPost;
 use App\Models\SavedJob;
 use App\Models\User;
@@ -89,7 +90,8 @@ class JobPostController extends Controller
     // Public single job view
     public function show(JobPost $jobPost)
     {
-        return view('jobs.show', compact('jobPost'));
+        $hasApplied = $this->checkIfUserApplied($jobPost->id);
+        return view('jobs.show', compact('jobPost', 'hasApplied'));
     }
 
     // Poster's own jobs — job.poster middleware handles role check
@@ -103,27 +105,16 @@ class JobPostController extends Controller
     }
 
     // Edit form — ownership check keeps the poster honest
-    public function edit(JobPost $jobPost)
+      public function edit(JobPost $jobPost)
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if ($jobPost->job_poster_id !== $user->jobPoster->id) {
-            abort(403, 'Unauthorized action.');
-        }
-
         return view('jobs.edit', compact('jobPost'));
     }
+
 
     // Update
     public function update(Request $request, JobPost $jobPost)
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if ($jobPost->job_poster_id !== $user->jobPoster->id) {
-            abort(403, 'Unauthorized action.');
-        }
+        
 
         $request->validate([
             'title'            => ['required', 'string', 'max:255'],
@@ -146,13 +137,6 @@ class JobPostController extends Controller
     // Delete
     public function destroy(JobPost $jobPost)
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if ($jobPost->job_poster_id !== $user->jobPoster->id) {
-            abort(403, 'Unauthorized action.');
-        }
-
         $jobPost->delete();
 
         return redirect()->route('jobs.mine')->with('message', 'Job deleted successfully!');
@@ -187,7 +171,33 @@ class JobPostController extends Controller
         $savedJobIds = $user->savedJobs()->pluck('job_post_id')->toArray();
         $jobs        = JobPost::with('poster')->whereIn('id', $savedJobIds)->latest()->get();
 
-        return view('jobs.saved', compact('jobs', 'savedJobIds'));
+        // Check application status for each saved job
+        $appliedJobs = [];
+        if (auth()->check() && auth()->user()->user_type === 'job_seeker') {
+            $appliedJobs = Application::where('job_seeker_id', auth()->user()->jobSeeker->id)
+                ->whereIn('job_post_id', $savedJobIds)
+                ->pluck('job_post_id')
+                ->toArray();
+        }
+
+        return view('jobs.saved', compact('jobs', 'savedJobIds', 'appliedJobs'));
+    }
+
+
+
+    private function checkIfUserApplied($jobPostId): bool
+    {
+        if (!auth()->check()) {
+            return false;
+        }
+
+        if (auth()->user()->user_type !== 'job_seeker') {
+            return false;
+        }
+
+        return Application::where('job_seeker_id', auth()->user()->jobSeeker->id)
+            ->where('job_post_id', $jobPostId)
+            ->exists();
     }
 
     // ── Private helper ────────────────────────────────────────────────────

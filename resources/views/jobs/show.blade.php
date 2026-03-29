@@ -51,9 +51,16 @@
         @auth
             @if(Auth::user()->user_type === 'job_seeker')
                 @if(session('error'))
-                    <div class="alert alert-warning">{{ session('error') }}</div>
+                    {{-- <div class="alert alert-warning">{{ session('error') }}</div> --}}
+                    <x-input-error />
                 @endif
+                @if(!$hasApplied)
                 <a href="{{ route('applications.create', $jobPost->id) }}" class="btn btn-primary btn-full">Apply for this Position</a>
+                @else
+                <button class="btn btn-primary btn-full" disabled style="opacity:0.6; cursor:not-allowed;">
+                                        Already Applied
+                                    </button>
+                @endif
             @endif
         @endauth
 

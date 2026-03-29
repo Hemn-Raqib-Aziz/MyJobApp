@@ -73,14 +73,6 @@ class ApplicationController extends Controller
     // Job poster — applications for one of their jobs
     public function jobApplications(JobPost $jobPost)
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        // Ownership check — role check is handled by job.poster middleware
-        if ($jobPost->job_poster_id !== $user->jobPoster->id) {
-            abort(403);
-        }
-
         $applications = Application::where('job_post_id', $jobPost->id)
             ->with('jobSeeker.user')
             ->latest()
@@ -92,28 +84,12 @@ class ApplicationController extends Controller
     // Job poster — single application detail
     public function show(Application $application)
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        // Ownership check
-        if ($application->jobPost->job_poster_id !== $user->jobPoster->id) {
-            abort(403);
-        }
-
         return view('applications.show', compact('application'));
     }
 
     // Job poster — update application status
     public function updateStatus(Request $request, Application $application)
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        // Ownership check
-        if ((int) $application->jobPost->job_poster_id !== (int) $user->jobPoster->id) {
-            abort(403);
-        }
-
         $request->validate([
             'status' => ['required', 'in:pending,reviewed,accepted,rejected'],
         ]);

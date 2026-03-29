@@ -45,35 +45,31 @@
             <p>Join MyJobApp to find or post jobs.</p>
         </div>
 
-        @if($errors->any())
-            <div class="alert alert-danger">
-                @foreach($errors->all() as $error)
-                    <p style="margin:0;">{{ $error }}</p>
-                @endforeach
-            </div>
-        @endif
-
         <form method="POST" action="/register">
             @csrf
 
             <div class="form-group">
                 <label class="form-label">User Name</label>
-                <input type="text" name="name" class="form-control" value="{{ old('name') }}" placeholder="Enter your full name or company name" autofocus>
+                <input type="text" name="name" class="form-control" value="{{ old('name') }}" placeholder="Enter your full name or company name" autofocus required>
+                <x-input-error field="name"/>
             </div>
 
             <div class="form-group">
                 <label class="form-label">Email</label>
-                <input type="email" name="email" class="form-control" value="{{ old('email') }}" placeholder="Enter your email address">
+                <input type="email" name="email" class="form-control" value="{{ old('email') }}" placeholder="Enter your email address" required>
+                <x-input-error field="email"/>
             </div>
 
             <div class="form-group">
                 <label class="form-label">Password</label>
-                <input type="password" name="password" class="form-control" placeholder="Create a strong password">
+                <input type="password" name="password" class="form-control" placeholder="Create a strong password" required>
+                <x-input-error field="password"/>
             </div>
 
             <div class="form-group">
                 <label class="form-label">Confirm Password</label>
-                <input type="password" name="password_confirmation" class="form-control" placeholder="Re-enter your password">
+                <input type="password" name="password_confirmation" class="form-control" placeholder="Re-enter your password" required>
+                <x-input-error field="password_confirmation"/>
             </div>
 
             {{-- Role Selection --}}
@@ -81,20 +77,21 @@
                 <label class="form-label">I want to</label>
                 <div class="role-options">
                     <div class="role-option">
-                        <input type="radio" name="role" id="job_seeker" value="job_seeker" {{ old('role') == 'job_seeker' ? 'checked' : '' }} required>
+                        <input type="radio" name="role" id="job_seeker" value="job_seeker" {{ old('role') == 'job_seeker' ? 'checked' : '' }} >
                         <label for="job_seeker">
                             <span class="icon">🔍</span>
                             Find a Job
                         </label>
                     </div>
                     <div class="role-option">
-                        <input type="radio" name="role" id="job_poster" value="job_poster" {{ old('role') == 'job_poster' ? 'checked' : '' }} required>
+                        <input type="radio" name="role" id="job_poster" value="job_poster" {{ old('role') == 'job_poster' ? 'checked' : '' }} >
                         <label for="job_poster">
                             <span class="icon">🏢</span>
                             Post Jobs
                         </label>
                     </div>
                 </div>
+                <x-input-error field="role"/>
             </div>
 
             <button type="submit" class="btn btn-primary btn-full">Create Account</button>

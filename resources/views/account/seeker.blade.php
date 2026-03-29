@@ -17,13 +17,6 @@
                 <div class="alert alert-success">{{ session('message') }}</div>
             @endif
 
-            @if($errors->any())
-                <div class="alert alert-danger">
-                    @foreach($errors->all() as $error)
-                        <p style="margin:0;">{{ $error }}</p>
-                    @endforeach
-                </div>
-            @endif
 
             <form method="POST" action="{{ route('seeker.account.update') }}">
                 @csrf
@@ -35,6 +28,7 @@
                 <div class="form-group">
                     <label class="form-label">User Name</label>
                     <input type="text" name="name" class="form-control" value="{{ old('name', auth()->user()->name) }}" required placeholder="Enter your full name">
+                    <x-input-error field="name"/>
                 </div>
 
                 <div class="form-group">
@@ -47,10 +41,12 @@
         <label class="form-label">Profile Title</label>
         <input type="text" name="profile_title" class="form-control" placeholder="e.g., Software Developer, IT Technician"
             value="{{ old('profile_title', $jobSeeker->profile_title) }}" required>
+            <x-input-error field="profile_title"/>
     </div>
                 <div class="form-group">
                     <label class="form-label">Age</label>
                     <input type="number" name="age" class="form-control" value="{{ old('age', $jobSeeker->age) }}" required placeholder="Enter your age">
+                    <x-input-error field="age"/>
                 </div>
 
                 <div class="form-group">
@@ -60,16 +56,19 @@
                         <option value="male" {{ old('sex', $jobSeeker->sex) == 'male' ? 'selected' : '' }}>Male</option>
                         <option value="female" {{ old('sex', $jobSeeker->sex) == 'female' ? 'selected' : '' }}>Female</option>
                     </select>
+                    <x-input-error field="sex"/>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Location</label>
                     <input type="text" name="location" class="form-control" value="{{ old('location', $jobSeeker->location) }}" required placeholder="City, Country">
+                    <x-input-error field="location"/>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Bio</label>
                     <textarea name="bio" class="form-control" rows="4" style="resize:vertical;" placeholder="A short intro about yourself...">{{ old('bio', $jobSeeker->bio) }}</textarea>
+                    <x-input-error field="bio"/>
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-full">Save Changes</button>

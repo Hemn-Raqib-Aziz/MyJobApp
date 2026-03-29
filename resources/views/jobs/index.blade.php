@@ -21,6 +21,12 @@
             .filter-bar { flex-direction: column; }
             .filter-bar .form-control { min-width: 100%; }
         }
+
+        /* Dims the button while the request is in flight */
+        .btn-save[data-loading] {
+            opacity: 0.6;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -77,7 +83,7 @@
                     <div>
                         <div class="job-card-title">{{ $job->title }}</div>
                         <div class="meta">
-                            <span style="font-size:13px; color:var(--gray-400); white-space:nowrap;"> {{ $job->created_at }}</span>
+                            <span style="font-size:13px; color:var(--gray-400); white-space:nowrap;">{{ $job->created_at }}</span>
                             <span>📍 {{ $job->location }}</span>
                             <span>💼 {{ ucfirst(str_replace('_', ' ', $job->job_type)) }}</span>
                             <span>📂 {{ $job->category }}</span>
@@ -89,19 +95,19 @@
                 <div class="job-card-actions">
                     <a href="{{ route('jobs.show', $job->id) }}" class="btn btn-primary btn-sm">View Details</a>
 
-                    {{-- Save / Unsave — both seekers and posters --}}
+                    {{--
+                        Save / Unsave — single <button>, no <form>, no page reload.
+                        JavaScript below handles the AJAX POST and flips the label.
+                    --}}
                     @auth
-                        @if(in_array($job->id, $savedJobIds))
-                            <form method="POST" action="{{ route('jobs.unsave', $job->id) }}" style="display:inline;">
-                                @csrf
-                                <button type="submit" class="btn btn-secondary btn-sm">Unsave</button>
-                            </form>
-                        @else
-                            <form method="POST" action="{{ route('jobs.save', $job->id) }}" style="display:inline;">
-                                @csrf
-                                <button type="submit" class="btn btn-secondary btn-sm">Save</button>
-                            </form>
-                        @endif
+                        <button
+                            class="btn btn-secondary btn-sm btn-save"
+                            data-saved="{{ in_array($job->id, $savedJobIds) ? 'true' : 'false' }}"
+                            data-save-url="{{ route('jobs.save', $job->id) }}"
+                            data-unsave-url="{{ route('jobs.unsave', $job->id) }}"
+                        >
+                            {{ in_array($job->id, $savedJobIds) ? 'Unsave' : 'Save' }}
+                        </button>
                     @endauth
                 </div>
             </div>
@@ -115,5 +121,47 @@
         @endforelse
 
     </div>
+
+    <script>
+        // Read the CSRF token once from the meta tag Laravel sets,
+        // or fall back to the cookie (both work with Laravel).
+        var csrfToken = document.querySelector('meta[name="csrf-token"]')
+            ? document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            : '{{ csrf_token() }}';
+
+        document.querySelectorAll('.btn-save').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                // Which action to call depends on current saved state
+                var saved  = btn.dataset.saved === 'true';
+                var url    = saved ? btn.dataset.unsaveUrl : btn.dataset.saveUrl;
+
+                // Block double-clicks while the request is in flight
+                btn.dataset.loading = '1';
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(function (response) {
+                    if (!response.ok) throw new Error('server error');
+
+                    // Toggle state and label — no reload, no scroll jump
+                    var nowSaved      = !saved;
+                    btn.dataset.saved = nowSaved ? 'true' : 'false';
+                    btn.textContent   = nowSaved ? 'Unsave' : 'Save';
+                })
+                .catch(function () {
+                    // Request failed silently — button stays unchanged, user can retry
+                })
+                .finally(function () {
+                    delete btn.dataset.loading;
+                });
+            });
+        });
+    </script>
 </body>
 </html>

@@ -24,12 +24,11 @@ class UserController extends Controller
             'role'     => ['required', 'in:job_seeker,job_poster'],
         ]);
 
-        $formFields['password'] = bcrypt($formFields['password']);
 
         $user = User::create([
             'name'      => $formFields['name'],
             'email'     => $formFields['email'],
-            'password'  => $formFields['password'],
+            'password'  => bcrypt($formFields['password']),
             'user_type' => $request->role,
         ]);
 
@@ -62,7 +61,10 @@ class UserController extends Controller
             'password' => 'required',
         ]);
 
-        if (Auth::attempt($formFields)) {
+        if (!Auth::attempt($formFields)) {
+            return back()->withErrors(['email' => 'Invalid credentials'])->onlyInput('email');
+        }
+        
             $request->session()->regenerate();
 
             /** @var \App\Models\User $user */
@@ -80,8 +82,6 @@ class UserController extends Controller
 
             // Step 3: All good → jobs listing
             return redirect()->route('jobs.index');
-        }
 
-        return back()->withErrors(['email' => 'Invalid credentials'])->onlyInput('email');
     }
 }

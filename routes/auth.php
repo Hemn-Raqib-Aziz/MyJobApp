@@ -14,15 +14,19 @@ use Illuminate\Support\Facades\Auth;
 */
 
 // Register
-Route::get('/register', [UserController::class, 'create'])->name('register')->middleware('guest');
-Route::post('/register', [UserController::class, 'store'])->middleware('guest');
+Route::middleware('guest')->group(function () {
+    Route::get('/register',  [UserController::class, 'create'])->name('register');
+    Route::post('/register', [UserController::class, 'store']);
+});
 
 // Login
-Route::get('/login', [UserController::class, 'login'])->name('login')->middleware('guest');
-Route::post('/login', [UserController::class, 'authenticate']);
+Route::middleware('guest')->group(function () {
+    Route::get('/login',  [UserController::class, 'login'])->name('login');
+    Route::post('/login', [UserController::class, 'authenticate']);
+});
 
 // Logout
-Route::post('/logout', [UserController::class, 'logout'])->name('logout')->middleware('auth');
+Route::post('/logout', [UserController::class, 'logout'])->middleware('auth')->name('logout');
 
 // Email verification notice
 Route::get('/email/verify', function () {

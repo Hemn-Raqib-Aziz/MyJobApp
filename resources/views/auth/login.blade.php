@@ -13,25 +13,21 @@
             <p>Sign in to your account to continue.</p>
         </div>
 
-        @if($errors->any())
-            <div class="alert alert-danger">
-                @foreach($errors->all() as $error)
-                    <p style="margin:0;">{{ $error }}</p>
-                @endforeach
-            </div>
-        @endif
+        
 
         <form method="POST" action="/login">
             @csrf
 
             <div class="form-group">
                 <label class="form-label">Email</label>
-                <input type="email" name="email" class="form-control" value="{{ old('email') }}" autofocus>
+                <input type="email" name="email" class="form-control" value="{{ old('email') }}" autofocus required>
+                <x-input-error field="email"/>
             </div>
 
             <div class="form-group">
                 <label class="form-label">Password</label>
-                <input type="password" name="password" class="form-control">
+                <input type="password" name="password" class="form-control" required>
+                <x-input-error field="password"/>
             </div>
 
             <button type="submit" class="btn btn-primary btn-full">Sign In</button>

@@ -14,8 +14,6 @@ class ProfileController extends Controller
     {
         $role = $request->query('role'); // gets ?role=job_seeker from URL
 
-        
-
         if (!in_array($role, ['job_seeker', 'job_poster'])) {
             return redirect()->route('home');
         }
@@ -130,11 +128,6 @@ public function deleteAccount(Request $request)
 
 
 
-
-
-
-
-
 // Show job seeker account page
 public function showSeekerAccount()
 {
@@ -163,7 +156,7 @@ public function updateSeekerAccount(Request $request)
         ]);
 
     $user->update(['name' => $request->name]);
-        $user->jobSeeker->update($request->only(['profile_title', 'age', 'sex', 'location', 'bio']));
+    $user->jobSeeker->update($request->only(['profile_title', 'age', 'sex', 'location', 'bio']));
 
     return redirect()->route('seeker.account.show')->with('message', 'Account updated successfully!');
 }

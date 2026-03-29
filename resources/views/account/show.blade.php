@@ -17,13 +17,6 @@
                 <div class="alert alert-success">{{ session('message') }}</div>
             @endif
 
-            @if($errors->any())
-                <div class="alert alert-danger">
-                    @foreach($errors->all() as $error)
-                        <p style="margin:0;">{{ $error }}</p>
-                    @endforeach
-                </div>
-            @endif
 
             <form method="POST" action="{{ route('account.update') }}">
                 @csrf
@@ -34,6 +27,7 @@
                 <div class="form-group">
                     <label class="form-label">User Name</label>
                     <input placeholder="Enter your full company name" type="text" name="name" class="form-control" value="{{ old('name', auth()->user()->name) }}" required>
+                    <x-input-error field="name"/>
                 </div>
 
                 <div class="form-group">
@@ -49,21 +43,25 @@
                 <div class="form-group">
                     <label class="form-label">Industry</label>
                     <input type="text" name="industry" class="form-control" value="{{ old('industry', $jobPoster->industry) }}" required placeholder="e.g. Technology, Healthcare">
+                    <x-input-error field="industry"/>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Location</label>
                     <input type="text" name="location" class="form-control" value="{{ old('location', $jobPoster->location) }}" required placeholder="City, Country">
+                    <x-input-error field="location"/>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Website</label>
                     <input type="url" name="website" class="form-control" value="{{ old('website', $jobPoster->website) }}" placeholder="https://..." required>
+                    <x-input-error field="website"/>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">About</label>
                     <textarea name="about" class="form-control" rows="4" style="resize:vertical;" placeholder="What does your company do?" required>{{ old('about', $jobPoster->about) }}</textarea>
+                    <x-input-error field="about"/>
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-full">Save Changes</button>

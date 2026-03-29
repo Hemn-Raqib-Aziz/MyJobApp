@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -11,19 +10,10 @@ use Illuminate\Support\Facades\Auth;
 */
 
 // ── Profile setup (post-registration, before email verified) ─────────────
-Route::get('/setup-profile', function (\Illuminate\Http\Request $request) {
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
-
-    if ($user->jobSeeker || $user->jobPoster) {
-        if (!$user->hasVerifiedEmail()) {
-            return redirect()->route('verification.notice');
-        }
-        return redirect()->route('jobs.index');
-    }
-
-    return app(ProfileController::class)->setupForm($request);
-})->middleware('auth')->name('profile.setup');
+Route::middleware(['auth', 'profile.incomplete'])->group(function () {
+    Route::get('/setup-profile',  [ProfileController::class, 'setupForm'])->name('profile.setup');
+    Route::post('/setup-profile', [ProfileController::class, 'store'])->name('profile.store');
+});
 
 Route::post('/setup-profile', [ProfileController::class, 'store'])
     ->middleware('auth')

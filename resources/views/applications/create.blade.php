@@ -48,13 +48,7 @@
             @endif
         </div>
 
-        @if($errors->any())
-            <div class="alert alert-danger">
-                @foreach($errors->all() as $error)
-                    <p style="margin:0;">{{ $error }}</p>
-                @endforeach
-            </div>
-        @endif
+        <x-input-error field="email"/>
 
         <form method="POST" action="{{ route('applications.store', $jobPost->id) }}" enctype="multipart/form-data">
             @csrf
@@ -63,12 +57,14 @@
                 <label class="form-label">Cover Letter</label>
                 <textarea name="cover_letter" class="form-control" rows="7" required style="resize:vertical;">{{ old('cover_letter') }}</textarea>
                 <p class="form-hint">Minimum 50 characters. Tell the employer why you're a great fit.</p>
+                <x-input-error field="cover_letter"/>
             </div>
 
             <div class="form-group">
                 <label class="form-label">CV / Resume</label>
                 <input type="file" name="cv" class="form-control" accept=".pdf" required>
                 <p class="form-hint">PDF only · Max 2MB</p>
+                <x-input-error field="cv"/>
             </div>
 
             <div class="btn-row" style="display:flex; gap:10px;">

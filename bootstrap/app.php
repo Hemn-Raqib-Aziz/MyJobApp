@@ -7,11 +7,24 @@ use App\Http\Middleware\EnsureJobSeeker;
 use App\Http\Middleware\EnsureProfileComplete;
 use App\Http\Middleware\PreventApplyingToExpiredJobs;
 use App\Http\Middleware\PreventBackHistory;
-use App\Http\Middleware\RedirectIfAuthenticated;
+use App\Http\Middleware\RedirectIfProfileComplete;
 use App\Http\Middleware\TrackLastSeen;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+
+/*
+|--------------------------------------------------------------------------
+| Notes on middleware NOT registered here
+|--------------------------------------------------------------------------
+|
+| RedirectIfAuthenticated — drop-in replacement, NO registration needed.
+|   Drop the file in app/Http/Middleware/ and Laravel automatically uses
+|   it instead of the framework's own class (same namespace + class name).
+|
+| RedirectIfProfileComplete — registered below as alias 'profile.incomplete'
+|   Used on /setup-profile routes to stop duplicate profile creation.
+*/
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -20,33 +33,37 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        
-        // Global — runs on every request
+
+        // ── Global — runs on every single request ─────────────────────────────
+        // PreventBackHistory adds no-cache headers so users can't hit the
+        // browser Back button and see a cached page after logging out.
         $middleware->append(PreventBackHistory::class);
-        
-        // Web group — runs on every web request
+
+        // ── Web group — runs on every web request ─────────────────────────────
+        // TrackLastSeen updates users.last_seen_at once every 5 minutes.
+        // Requires: $table->timestamp('last_seen_at')->nullable() in migration
+        // and 'last_seen_at' in User $fillable.
         $middleware->appendToGroup('web', TrackLastSeen::class);
-        
-        // Named aliases for use in route files
+
+        // ── Named aliases — used in route files ───────────────────────────────
         $middleware->alias([
-            'job.seeker'        => EnsureJobSeeker::class,
-            'job.poster'        => EnsureJobPoster::class,
-            'profile.complete'  => EnsureProfileComplete::class,
-            'job.owner'         => EnsureJobOwner::class,
-            'app.owner'         => EnsureApplicationOwner::class,
-            'profile.incomplete'=> RedirectIfAuthenticated::class,
-            'job.not_expired'   => PreventApplyingToExpiredJobs::class,
-            ]);
-            // ->withMiddleware(function (Middleware $middleware): void {
-                // $middleware->alias([
-                //     'profile.complete' => EnsureProfileComplete::class,
-                //     'job.seeker'  => EnsureJobSeeker::class,
-                //     'job.poster'  => EnsureJobPoster::class,
-                //     'job.owner'  => EnsureJobOwner::class,
-                //     'app.owner'  => EnsureApplicationOwner::class,
-                //     'job.not_expired'  => PreventApplyExpired::class,
-                //     'profile.incomplete'  => RedirectIfProfileDone::class,
-                // ]);
+
+            // Role gates
+            'job.seeker'         => EnsureJobSeeker::class,
+            'job.poster'         => EnsureJobPoster::class,
+
+            // Profile flow
+            'profile.complete'   => EnsureProfileComplete::class,   // redirect to setup if no profile
+            'profile.incomplete' => RedirectIfProfileComplete::class, // redirect away from setup if already done
+
+            // Ownership checks (run AFTER job.poster so jobPoster is guaranteed)
+            'job.owner'          => EnsureJobOwner::class,          // poster owns {jobPost}
+            'app.owner'          => EnsureApplicationOwner::class,  // poster owns {application}
+
+            // Deadline guard (run AFTER job.seeker)
+            'job.not_expired'    => PreventApplyingToExpiredJobs::class,
+
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
