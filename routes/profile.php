@@ -15,9 +15,7 @@ Route::middleware(['auth', 'profile.incomplete'])->group(function () {
     Route::post('/setup-profile', [ProfileController::class, 'store'])->name('profile.store');
 });
 
-Route::post('/setup-profile', [ProfileController::class, 'store'])
-    ->middleware('auth')
-    ->name('profile.store');
+
 
 // ── Job poster account ────────────────────────────────────────────────────
 Route::middleware(['auth', 'verified', 'profile.complete', 'job.poster'])->group(function () {
