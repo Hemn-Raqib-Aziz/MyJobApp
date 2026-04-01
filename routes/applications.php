@@ -10,7 +10,7 @@ use App\Http\Controllers\ApplicationController;
 */
 
 // ── Job seeker only ───────────────────────────────────────────────────────
-Route::middleware(['auth', 'verified', 'profile.complete', 'job.seeker', , 'job.not_expired'])->group(function () {
+Route::middleware(['auth', 'verified', 'profile.complete', 'job.seeker', 'job.not_expired'])->group(function () {
     Route::get('/jobs/{jobPost}/apply',  [ApplicationController::class, 'create'])->name('applications.create');
     Route::post('/jobs/{jobPost}/apply', [ApplicationController::class, 'store'])->name('applications.store');
 });
